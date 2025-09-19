@@ -26,12 +26,13 @@ module AllLint
 
     def resolve_targets(globs)
       if @files && !@files.empty?
-        candidates = @files
+        only_files = @files.select { |f| File.file?(f) }
         included = globs.flat_map { |g| Dir.glob(g) }.uniq
-        candidates.select { |f| included.include?(f) }
-      else
-        globs.flat_map { |g| Dir.glob(g) }.uniq
+        filtered = only_files.select { |f| included.include?(f) }
+        return filtered unless filtered.empty?
+        # If args had no files or no matches, fall back to global search (keeps KISS: dir args ignored)
       end
+      globs.flat_map { |g| Dir.glob(g) }.uniq
     end
 
     def shell_join(files)
