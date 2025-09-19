@@ -196,7 +196,7 @@ bundle install
 2. 最小設定を書く
 
 ```yaml
-# .all-lint.yml
+# .all_lint.yml
 linters:
   echo:
     glob: ["**/*.rb"]

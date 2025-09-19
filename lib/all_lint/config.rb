@@ -4,7 +4,7 @@ module AllLint
   class Config
     class Error < StandardError; end
 
-    DEFAULT_PATH = ".all-lint.yml"
+    DEFAULT_PATH = ".all_lint.yml"
 
     attr_reader :linters
 

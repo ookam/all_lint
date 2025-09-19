@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.email         = [""]
 
   spec.summary       = "Run multiple linters sequentially from one YAML"
-  spec.description   = "Minimal runner that reads .all-lint.yml and runs each linter's command with filtered files."
+  spec.description   = "Minimal runner that reads .all_lint.yml and runs each linter's command with filtered files."
   spec.homepage      = "https://example.com/"
   spec.license       = "MIT"
 

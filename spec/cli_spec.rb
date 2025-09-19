@@ -15,7 +15,7 @@ RSpec.describe AllLint::CLI do
 
   it "runs linters sequentially with banner and ${filter_files}" do
     with_tmp_dir do |dir|
-      File.write(".all-lint.yml", <<~YML)
+      File.write(".all_lint.yml", <<~YML)
         linters:
           echo:
             glob: ["**/*.rb"]
@@ -37,7 +37,7 @@ RSpec.describe AllLint::CLI do
 
   it "filters by passed files (glob ∩ args)" do
     with_tmp_dir do |dir|
-      File.write(".all-lint.yml", <<~YML)
+      File.write(".all_lint.yml", <<~YML)
         linters:
           echo:
             glob: ["**/*.rb"]
@@ -60,7 +60,7 @@ RSpec.describe AllLint::CLI do
 
   it "returns non-zero when any linter fails" do
     with_tmp_dir do |dir|
-      File.write(".all-lint.yml", <<~YML)
+      File.write(".all_lint.yml", <<~YML)
         linters:
           ok:
             glob: ["*.rb"]
@@ -80,7 +80,7 @@ RSpec.describe AllLint::CLI do
 
   it "returns code 2 when config invalid" do
     with_tmp_dir do |dir|
-      File.write(".all-lint.yml", "invalid: true\n")
+      File.write(".all_lint.yml", "invalid: true\n")
       code = AllLint::CLI.new(["run"]).run
       expect(code).to eq(2)
     end
@@ -88,7 +88,7 @@ RSpec.describe AllLint::CLI do
 
   it "CLI passes args to runner and filters accordingly" do
     with_tmp_dir do |dir|
-      File.write(".all-lint.yml", <<~YML)
+      File.write(".all_lint.yml", <<~YML)
         linters:
           echo:
             glob: ["**/*.rb"]
@@ -108,7 +108,7 @@ RSpec.describe AllLint::CLI do
 
   it "CLI returns 1 when any linter fails" do
     with_tmp_dir do |dir|
-      File.write(".all-lint.yml", <<~YML)
+      File.write(".all_lint.yml", <<~YML)
         linters:
           ng:
             glob: ["*.rb"]
@@ -123,7 +123,7 @@ RSpec.describe AllLint::CLI do
 
   it "returns 0 and prints nothing when all linters are skipped" do
     with_tmp_dir do |dir|
-      File.write(".all-lint.yml", <<~YML)
+      File.write(".all_lint.yml", <<~YML)
         linters:
           echo:
             glob: ["**/*.rb"]
