@@ -1,0 +1,35 @@
+# Bundler / dependencies
+/.bundle/
+/vendor
+
+# Build artifacts
+/pkg/
+/*.gem
+/coverage/
+/.yardoc/
+/yardoc/
+/tmp/
+/log/
+
+# RSpec artifacts
+/.rspec_status
+/spec/examples.txt
+/spec/reports/
+/rspec.failures
+
+# Editors / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+tags
+.tags
+
+# Debug / history
+.byebug_history
+.irb_history
+
+# Env files
+.env
