@@ -100,6 +100,18 @@ all_lint run [<file>...]
 
 > 実行順は **設定記述順**。並列実行はしません。
 
+### 追加の表示（環境変数）
+
+- `ALL_LINT_VERBOSE=1`：各リンターの対象件数やスキップを表示
+- `ALL_LINT_LIST_FILES=1`：`ALL_LINT_VERBOSE` に加えて対象ファイル一覧を表示
+
+実行例:
+
+```bash
+ALL_LINT_VERBOSE=1 bundle exec all_lint run
+ALL_LINT_VERBOSE=1 ALL_LINT_LIST_FILES=1 bundle exec all_lint run a.rb b.rb
+```
+
 ---
 
 ## 変数展開
@@ -118,12 +130,16 @@ all_lint run [<file>...]
    - 引数があれば**引数のファイル群**を起点に `glob` で絞り込み
    - 引数がなければ**リポジトリ全体**を起点に `glob` で探索
 
-3. 対象が**1 件以上**ある場合のみ `command` を実行
+3. 対象が**1 件以上**ある場合のみ `command` を実行（対象が 0 件ならスキップを表示（`ALL_LINT_VERBOSE` 有効時））
 4. いずれかのリンターの `command` が非 0 を返したら **全体の終了コードは非 0**
 5. ログは
 
    - 実行する前に `==> [linter名] <command...>` を 1 行出す
    - 各 linter の標準出力・標準エラーはそのまま中継
+
+- 各リンター実行後に 成功/失敗 を 1 行で表示（成功は緑、失敗は赤）
+- 何か 1 つでも実行された場合、最後にサマリを 1 行出す（成功は緑、失敗は赤）
+- 失敗がある場合は、最後に失敗したリンター名の一覧を赤で表示
 
 ---
 
