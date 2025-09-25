@@ -103,13 +103,14 @@ module AllLint
     end
 
     def resolve_targets(globs)
-      if @files && !@files.empty?
+      targets = if @files && !@files.empty?
         only_files = @files.select { |f| File.file?(f) }
         included = globs.flat_map { |g| Dir.glob(g) }.uniq
-        return only_files.select { |f| included.include?(f) }
+        only_files.select { |f| included.include?(f) }
       else
-        return globs.flat_map { |g| Dir.glob(g) }.uniq
+        globs.flat_map { |g| Dir.glob(g) }.uniq
       end
+      filter_out_git_ignored(targets)
     end
 
     def shell_join(files)
@@ -135,6 +136,23 @@ module AllLint
         "#{(sec * 1000).round}ms"
       else
         "#{format('%.2f', sec)}s"
+      end
+    end
+
+    # -- git helpers --
+    def git_repo?
+      system('git rev-parse --is-inside-work-tree > /dev/null 2>&1')
+    end
+
+    def filter_out_git_ignored(paths)
+      return paths if paths.empty? || !git_repo?
+      begin
+        out, _ = Open3.capture2("git", "check-ignore", "-z", "--stdin", stdin_data: paths.join("\x00"))
+        ignored = out.to_s.split("\x00").reject(&:empty?)
+        paths - ignored
+      rescue => _e
+        # Fallback: if git fails for any reason, do not filter
+        paths
       end
     end
   end

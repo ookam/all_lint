@@ -226,4 +226,33 @@ RSpec.describe AllLint::CLI do
       }.not_to output.to_stdout
     end
   end
+
+  it "+git: skips files ignored by .gitignore" do
+    with_tmp_dir do |dir|
+      # init git repo and set ignore
+      system("git init -q")
+      File.write(".gitignore", "tmp/\n")
+
+      # config and files
+      File.write(".all_lint.yml", <<~YML)
+        linters:
+          echo:
+            glob: ["**/*.rb"]
+            command: "bash -lc 'echo RUN ${filter_files}'"
+      YML
+
+      Dir.mkdir("tmp")
+      File.write("tmp/ignored.rb", "# ignore me")
+      File.write("a.rb", "# target")
+
+      expect {
+        code = AllLint::CLI.new(["run"]).run
+        expect(code).to eq(0)
+      }.to output(
+        a_string_including("RUN a.rb").and(
+          a_string_matching(/\A(?!.*tmp\/ignored\.rb).*/m)
+        )
+      ).to_stdout_from_any_process
+    end
+  end
 end
