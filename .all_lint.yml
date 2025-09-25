@@ -1,0 +1,7 @@
+linters:
+  echo:
+    glob: ["lib/**/*.rb"]
+    command: "bash -lc 'echo RUN ${filter_files}'"
+
+options:
+  stop_on_early: true

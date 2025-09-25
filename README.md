@@ -7,7 +7,7 @@
 **目的**：複数リンターを「設定ファイル 1 枚 + コマンド 1 個」で順番に実行するだけ。
 **非目的**：Git 連携・差分検出・環境変数注入・高度な分岐など一切なし。
 
-- 設定は **glob** と **command** のみ
+- 設定は基本 **glob** と **command**（任意で `options.stop_on_early` を利用可）
 - 実行は **順次のみ**（並列なし）
 - `glob` に 1 件もマッチしなければ **そのリンターはスキップ**（空実行なし）
 - CLI は **2 モード**のみ
@@ -43,6 +43,10 @@ gem install all_lint
 1. ルートに **`.all_lint.yml`** を作成
 
 ```yml
+options:
+  # true の場合、最初に失敗（非 0 終了）したリンターで直ちに停止します
+  stop_on_early: false
+
 linters:
   rubocop:
     glob: ["**/*.rb", "**/*.rake"]
@@ -70,6 +74,7 @@ all_lint run app/models/user.rb frontend/src/App.tsx
 ### ルートキー
 
 - `linters`（必須）: linter 名（任意キー）ごとの設定
+- `options`（任意）: 実行時のふるまいに関するオプション
 
 ### `linters.*` の項目
 
@@ -85,6 +90,12 @@ all_lint run app/models/user.rb frontend/src/App.tsx
 
 > **重要**：`glob` の結果が **空** の場合、そのリンターは **実行しません**（`command` は呼びません）。
 > `${filter_files}` が空文字になることは**ありません**。
+
+### `options` の項目
+
+- `stop_on_early`（デフォルト: `false`）
+  - `true` の場合、あるリンターの `command` が非 0 を返した時点で、以降のリンターの実行をスキップして即座に終了します。
+  - `false` の場合はすべてのリンターを最後まで実行し、最終的な成功/失敗をまとめて返します。
 
 ---
 
@@ -132,6 +143,9 @@ ALL_LINT_VERBOSE=1 ALL_LINT_LIST_FILES=1 bundle exec all_lint run a.rb b.rb
 
 3. 対象が**1 件以上**ある場合のみ `command` を実行（対象が 0 件ならスキップを表示（`ALL_LINT_VERBOSE` 有効時））
 4. いずれかのリンターの `command` が非 0 を返したら **全体の終了コードは非 0**
+
+- `options.stop_on_early: true` の場合は、その時点で直ちに処理を終了します（後続のリンターはスキップ）。
+
 5. ログは
 
    - 実行する前に `==> [linter名] <command...>` を 1 行出す
@@ -183,6 +197,23 @@ linters:
     command: "pnpm eslint ${filter_files}"
 ```
 
+### 失敗即終了（`stop_on_early`）を有効にする
+
+```yml
+options:
+  stop_on_early: true
+
+linters:
+  rubocop:
+    glob: ["**/*.rb"]
+    command: "bundle exec rubocop ${filter_files}"
+  eslint:
+    glob: ["**/*.{js,jsx,ts,tsx}"]
+    command: "pnpm eslint ${filter_files}"
+```
+
+この例では、`rubocop` が非 0 を返した時点で `eslint` は実行されずに終了します。
+
 ---
 
 ## サポート環境
@@ -195,7 +226,7 @@ linters:
 
 ## 非対応（明示）
 
-- 並列実行、キャッシュ、差分検出、Git 連携、`options` セクション、環境変数注入、作業ディレクトリ変更、除外設定、バッチ分割、Windows 対応
+- 並列実行、キャッシュ、差分検出、Git 連携、環境変数注入、作業ディレクトリ変更、除外設定、バッチ分割、Windows 対応
 
 > 必要になったら別ツールで補完、もしくは将来の拡張として検討してください。
 

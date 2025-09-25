@@ -121,6 +121,95 @@ RSpec.describe AllLint::CLI do
     end
   end
 
+  it "stops early on failure when options.stop_on_early is true" do
+    with_tmp_dir do |dir|
+      File.write(".all_lint.yml", <<~YML)
+        options:
+          stop_on_early: true
+
+        linters:
+          ng:
+            glob: ["*.rb"]
+            command: "bash -lc 'exit 3'"
+          after:
+            glob: ["*.rb"]
+            command: "bash -lc 'echo SHOULD_NOT_RUN_AFTER'"
+      YML
+      File.write("a.rb", "# a")
+
+      expect {
+        code = AllLint::CLI.new(["run"]).run
+        expect(code).to eq(1)
+      }.not_to output(/SHOULD_NOT_RUN_AFTER/).to_stdout_from_any_process
+    end
+  end
+
+  it "does not stop early when options.stop_on_early is false" do
+    with_tmp_dir do |dir|
+      File.write(".all_lint.yml", <<~YML)
+        options:
+          stop_on_early: false
+
+        linters:
+          ng:
+            glob: ["*.rb"]
+            command: "bash -lc 'exit 2'"
+          after:
+            glob: ["*.rb"]
+            command: "bash -lc 'echo SHOULD_RUN_AFTER_FALSE'"
+      YML
+      File.write("a.rb", "# a")
+
+      expect {
+        code = AllLint::CLI.new(["run"]).run
+        expect(code).to eq(1)
+      }.to output(/SHOULD_RUN_AFTER_FALSE/).to_stdout_from_any_process
+    end
+  end
+
+  it "does not stop early when options is missing (default behavior)" do
+    with_tmp_dir do |dir|
+      File.write(".all_lint.yml", <<~YML)
+        linters:
+          ng:
+            glob: ["*.rb"]
+            command: "bash -lc 'exit 4'"
+          after:
+            glob: ["*.rb"]
+            command: "bash -lc 'echo SHOULD_RUN_AFTER_DEFAULT'"
+      YML
+      File.write("a.rb", "# a")
+
+      expect {
+        code = AllLint::CLI.new(["run"]).run
+        expect(code).to eq(1)
+      }.to output(/SHOULD_RUN_AFTER_DEFAULT/).to_stdout_from_any_process
+    end
+  end
+
+  it "prints early-stop notice when stop_on_early triggers" do
+    with_tmp_dir do |dir|
+      File.write(".all_lint.yml", <<~YML)
+        options:
+          stop_on_early: true
+
+        linters:
+          ng:
+            glob: ["*.rb"]
+            command: "bash -lc 'exit 1'"
+          after:
+            glob: ["*.rb"]
+            command: "bash -lc 'echo SHOULD_NOT_RUN'"
+      YML
+      File.write("a.rb", "# a")
+
+      expect {
+        code = AllLint::CLI.new(["run"]).run
+        expect(code).to eq(1)
+      }.to output(/早期終了/).to_stdout_from_any_process
+    end
+  end
+
   it "returns 0 and prints nothing when all linters are skipped" do
     with_tmp_dir do |dir|
       File.write(".all_lint.yml", <<~YML)

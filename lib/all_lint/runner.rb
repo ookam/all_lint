@@ -14,6 +14,8 @@ module AllLint
   overall_success = true
   failed_names = []
   results = []
+      early_stop_triggered = false
+      early_stop_by = nil
       executed_count = 0
       @config.linters.each do |name, conf|
         targets = resolve_targets(conf["glob"])
@@ -43,6 +45,16 @@ module AllLint
         end
         results << { name: name, success: !!status, exit_code: exit_code, duration: elapsed }
         overall_success &&= status
+
+        # early stop when configured and failed
+        if !status && @config.respond_to?(:options) && @config.options["stop_on_early"]
+          early_stop_triggered = true
+          early_stop_by = name
+          # 早期終了の通知
+          $stdout.puts
+          $stdout.puts(colorize("⏹️  早期終了: options.stop_on_early により '#{name}' の失敗で停止しました", :red))
+          break
+        end
       end
       if executed_count > 0
         $stdout.puts
